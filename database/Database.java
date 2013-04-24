@@ -600,32 +600,7 @@ public class Database {
 			return null;
 		}
 	}
-        
-        	public DefaultListModel<procatering.Dish> mostDishes() {
-		try (Connection con = DriverManager.getConnection(URL, username, password)) {
-			try (PreparedStatement prepStat = con.prepareStatement("SELECT dish_id FROM order_dish")) {
-				con.setAutoCommit(false);
-				ResultSet rs = prepStat.executeQuery();
-                                DefaultListModel input;
-                                input = new DefaultListModel();
-				//DefaultListModel<procatering.Dish> output = new DefaultListModel<>();
-				while (rs.next()) {
-					input.addElement(rs);
-				}
-                                Map<Integer, Integer> treeMap = new TreeMap<Integer, Integer>(map);
-				con.commit();
-				con.setAutoCommit(true);
-				return input;
-			} catch (SQLException ePrepState) {
-				gui.Gui.showErrorMessage(DATABASE_NUMBER, 1, ePrepState);
-				cleanup.dbRollback(con);
-				return null;
-			}
-		} catch (SQLException eCon) {
-			gui.Gui.showErrorMessage(DATABASE_NUMBER, 2, eCon);
-			return null;
-		}
-	}
+
 
 	/**
 	 * Remove a dish from the database with the given name. The name will be checked if it is less than 255 sign
