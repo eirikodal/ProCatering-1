@@ -136,6 +136,11 @@ public class Database {
 		}
 	}
 
+    /**
+     * Adds a subscription to a customer
+     * @param sub Is a subscription object
+     * @return true if adding a subscription is successful, false if not
+     */
 	public boolean addSubscription(procatering.Subscription sub) {
 		if (sub == null) {
 			return false;
@@ -185,6 +190,11 @@ public class Database {
 		//TODO: MAKE method .. Ted
 	}
 
+    /**
+     * Gets the customer with the given customer ID
+     * @param cid The ID number of the desired customer
+     * @return the customer object
+     */
 	public Customer getCustomer(int cid) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (
@@ -211,8 +221,8 @@ public class Database {
 	/**
 	 * Uses a Employee object and a string with password to add a new employee into the database
 	 *
-	 * @param input
-	 * @param pw
+	 * @param input The desired employee object
+	 * @param pw    The password that have been chosen
 	 * @return true if successfully added, else it will return false.
 	 *         employee_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	 */
@@ -249,10 +259,10 @@ public class Database {
 	}
 
 	/**
-	 * getEmploye creates a new Employee object by using the employee id to identify the employe in the database.
+	 * getEmployee creates a new Employee object by using the employee id to identify the employee in the database.
 	 *
-	 * @param id
-	 * @return Employe if correct employee id have been given, else it will return null.
+	 * @param id The ID of the desired employee
+	 * @return Employee object if correct employee id have been given, else it will return null.
 	 */
 	public Employee getEmployee(int id) {
 		if (id < -1) {
@@ -301,7 +311,11 @@ public class Database {
 		return null;
 	}
 
-	//TODO FIX DOK: updateEmployee
+    /**
+     * Updates the information of an employee in the database
+     * @param input The employee object with the updated information
+     * @return true if successful, false if not
+     */
 	public boolean updateEmployee(procatering.Employee input) {
 		if (input == null) {
 			return false;
@@ -338,11 +352,10 @@ public class Database {
 	}
 
 	/**
-	 * Checks if an employee are already in the database. The method will check for firstname, lastname, and phonenumber of an Employee object.
+	 * Checks if an employee are already in the database. The method will check for first name, last name, and phone number of an Employee object.
 	 *
 	 * @param employee Employee Object
 	 * @return false if the employee does not exist and true if employee exist or the statement is null
-	 *         <p/>
 	 */
 	public boolean employeeExist(Employee employee) {
 		if (employee == null) {
@@ -382,8 +395,8 @@ public class Database {
 	/**
 	 * Uses the employee id to identify a row in the database and updated the password with the given string.
 	 *
-	 * @param input String Object
-	 * @param id    Integer
+	 * @param input String with the new password
+	 * @param id    The ID of the employee
 	 * @return return true if successfully updated, else it will return false.
 	 */
 	public boolean changeEmployeePassword(String input, int id) {
@@ -410,7 +423,12 @@ public class Database {
 		}
 	}
 
-	//TODO lag dokumentasjon
+    /**
+     * Updates the information of a customer in the database
+     * @param input The customer object with the updated information
+     * @param cid   The ID of the customer
+     * @return true if the update is successful, false if not
+     */
 	public boolean updateCustomer(Customer input, int cid) {
 		if (input == null || cid < 1) {
 			return false;
@@ -446,7 +464,11 @@ public class Database {
 		}
 	}
 
-	//TODO Lag dokumentasjon
+    /**
+     * Gets the password from the employee with the given ID number
+     * @param id The ID of the employee
+     * @return a String with the password
+     */
 	public String getPasswordFromDatabase(int id) {
 		String query = "SELECT password FROM employee WHERE employee_id = ?";
 		try (Connection con = DriverManager.getConnection(URL, username, password);
@@ -461,10 +483,11 @@ public class Database {
 		}
 	}
 
-	//TODO lag dokumentasjon EIRIK! / add ordercontent også.
-
-
-	//TODO DOK!
+    /**
+     * Gets the orders that a customer, with the given customer ID, have orderd
+     * @param cid The desired customer in form of the customer ID
+     * @return a DefaultListModel with all the orders
+     */
 	public DefaultListModel<Order> getOrder(int cid) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (PreparedStatement prepStat = con.prepareStatement("SELECT * FROM orders LEFT JOIN customer ON customer.customer_id = orders.customer_id WHERE orders.customer_id = ?")) {
@@ -489,6 +512,12 @@ public class Database {
 		}
 	}
 
+    /**
+     * Adds dishes to the order content list and sets the time of the delivery
+     * @param orderId   The order ID that the dishes are to be added to
+     * @param delivery  The delivery date and time in form of a timestamp
+     * @return a DefaultListModel with the dishlist
+     */
 	private DefaultListModel<procatering.Dish> createDishList(int orderId, Timestamp delivery) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (PreparedStatement prepStat = con.prepareStatement("SELECT * FROM order_dish JOIN dish  ON (order_dish.dish_id = dish.dish_id AND order_dish.delivery = ? AND order_dish.order_id = ?)")) {
@@ -521,7 +550,11 @@ public class Database {
 		}
 	}
 
-
+    /**
+     * Connects the order content with an order
+     * @param orderId The ID of the order the order content is to be added to
+     * @return a DefaultListModel with the order content
+     */
 	private DefaultListModel<procatering.OrderContent> createContentList(int orderId) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (PreparedStatement prepStat = con.prepareStatement("SELECT DISTINCT order_dish.delivery FROM order_dish LEFT OUTER JOIN orders ON (order_dish.order_id = ? AND orders.order_id = ?)JOIN customer ON(customer.customer_id = orders.customer_id) WHERE days IS NULL ORDER BY order_dish.delivery ASC")) {
@@ -550,6 +583,12 @@ public class Database {
 		}
 	}
 
+    /**
+     * Adds dishes to the order content list and sets the day of the delivery. This is for subscriptions
+     * @param orderId   The order ID that the dishes are to be added to
+     * @param day       The day(s)of the week the subscription is to be delivered
+     * @return a DefaultListModel with the dish list
+     */
 	private DefaultListModel<procatering.Dish> createDishList(int orderId, String day) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (PreparedStatement prepStat = con.prepareStatement("SELECT * FROM order_dish JOIN dish  ON (order_dish.dish_id = dish.dish_id AND order_dish.days = ? AND order_dish.order_id = ?)")) {
@@ -582,6 +621,11 @@ public class Database {
 		}
 	}
 
+    /**
+     * Connects the order content with an subscription order
+     * @param orderId The ID of the subscription order the order content is to be added to
+     * @return a DefaultListModel with the order content
+     */
 	private DefaultListModel<procatering.OrderContent> createSubscriptionContentList(int orderId) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (PreparedStatement prepStat = con.prepareStatement("SELECT DISTINCT order_dish.days, order_dish.delivery FROM order_dish LEFT OUTER JOIN orders ON (order_dish.order_id = ? AND orders.order_id = ?)JOIN customer ON(customer.customer_id = orders.customer_id) WHERE days IS NOT NULL ORDER BY order_dish.order_id ASC")) {
@@ -610,6 +654,10 @@ public class Database {
 		}
 	}
 
+    /**
+     * Gets all the subscriptions from the database
+     * @return a DefaultListModel with all the subscriptions
+     */
 	public DefaultListModel<Subscription> getAllSubscriptions() {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (PreparedStatement prepStat = con.prepareStatement("SELECT DISTINCT orders.order_id, orders.customer_id, orders.employee_id, orders.status, orders.time_of_order, orders.order_id  FROM orders LEFT OUTER JOIN order_dish ON (order_dish.order_id = orders.order_id) WHERE days IS NOT NULL")) {
@@ -637,10 +685,13 @@ public class Database {
 		}
 	}
 
-	// TODO ORDER BY order id or something?
+    /**
+     * Gives out all the orders, sorted by most recently added first
+     * @return a DefaultListModel with all the orders
+     */
 	public DefaultListModel<Order> getAllOrders2() {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
-			try (PreparedStatement prepStat = con.prepareStatement("SELECT DISTINCT orders.order_id, orders.customer_id, orders.employee_id, orders.status, orders.time_of_order, orders.order_id  FROM orders LEFT OUTER JOIN order_dish ON (order_dish.order_id = orders.order_id) WHERE days IS NULL")) {
+			try (PreparedStatement prepStat = con.prepareStatement("SELECT DISTINCT orders.order_id, orders.customer_id, orders.employee_id, orders.status, orders.time_of_order, orders.order_id  FROM orders LEFT OUTER JOIN order_dish ON (order_dish.order_id = orders.order_id) WHERE days IS NULL ORDER BY orders.time_of_order DESC")) {
 				con.setAutoCommit(false);
 				ResultSet rs = prepStat.executeQuery();
 				con.commit();
@@ -665,6 +716,11 @@ public class Database {
 		}
 	}
 
+    /**
+     * Adds an order to a customer in the database
+     * @param order The order object with all the needed atributes
+     * @return true if adding of the order was successful, false if not
+     */
 	public boolean addOrder(Order order) {
 		if (order == null) {
 			return false;
@@ -683,11 +739,6 @@ public class Database {
 				prepStat.executeUpdate();
 				ResultSet rs = prepStat.getGeneratedKeys();
 				rs.first();
-
-				/**
-				 * Først loope vi gjennom orderContent.getDishes å lage en kopi, uten duplikat. ALtså en lengde på 2. og 1.
-				 * åsså bruke vi metodn i
-				 */
 
 
 				for (int i = 0; i < orderContent.size(); i++) {
@@ -717,6 +768,11 @@ public class Database {
 		return false;
 	}
 
+    /**
+     * Finds all the orders a spesific employee have added
+     * @param e_id The id of the employee
+     * @return a DefaultListModel with all the orders
+     */
 	public DefaultListModel<procatering.Order> getAllOrders(int e_id) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (PreparedStatement prepStat = con.prepareStatement("SELECT * FROM order_dish LEFT OUTER JOIN orders ON (order_dish.order_id = orders.order_id)JOIN customer ON(customer.customer_id = orders.customer_id AND order_dish.days IS NULL) JOIN dish ON(dish.dish_id = order_dish.dish_id) ORDER BY order_dish.order_id ASC")) {
@@ -793,6 +849,11 @@ public class Database {
 		}
 	}
 
+    /**
+     * Copies the order content list. If you want a order content list with a different memory location
+     * @param input The desired order content list
+     * @return a DefaultListModel with the order content
+     */
 	private DefaultListModel<OrderContent> copyContentList(DefaultListModel<OrderContent> input) {
 		DefaultListModel<OrderContent> output = new DefaultListModel<>();
 		for (int i = 0; i < input.size(); i++) {
@@ -801,6 +862,11 @@ public class Database {
 		return output;
 	}
 
+    /**
+     * Copies the dish list. If you want a dish list with a different memory location
+     * @param input The desired dish list
+     * @return a DefaultListModel with the dish list
+     */
 	private DefaultListModel<Dish> copyDishList(DefaultListModel<Dish> input) {
 		DefaultListModel<Dish> output = new DefaultListModel<>();
 		for (int i = 0; i < input.size(); i++) {
@@ -810,7 +876,7 @@ public class Database {
 	}
 
 	/**
-	 * The methode check the dishName length, it has to be less than 255 signs.
+	 * The method check the dishName length, it has to be less than 255 signs.
 	 *
 	 * @param dishName String object
 	 * @return Dish object, or null if dishName is not found in the database.
@@ -859,10 +925,10 @@ public class Database {
 	}
 
 	/**
-	 * edit an dish in the database. Require that the dish object obtain dish_id. The mothode only change price and cost of the dish.
+	 * edit an dish in the database. Require that the dish object obtain dish_id. The mothod only change price and cost of the dish.
 	 *
 	 * @param dish Dish object
-	 * @return true if sucsessfully updated even if non of the value are different from what is allready in the database, else it will return false.
+	 * @return true if successfully updated even if non of the value are different from what is already in the database, else it will return false.
 	 */
 	public boolean editDish(Dish dish) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
@@ -888,7 +954,7 @@ public class Database {
 	}
 
 	/**
-	 * Search metode for dishes. uses a string value and include every dish with that value inside the dishname.
+	 * Search method for dishes. uses a string value and include every dish with that value inside the dishname.
 	 *
 	 * @param value the value to be serached for.
 	 * @return a DefaultListModel with dishes that include the string value in dishname, or null if something fails.
@@ -919,10 +985,10 @@ public class Database {
 	}
 
 	/**
-	 * Changes the status attrite value in the database from 1 to 0 for the given dishname.
+	 * Changes the status attribute value in the database from 1 to 0 for the given dishname.
 	 *
 	 * @param name String object
-	 * @return true if sucsessfully updated; return false if nothing have been updated or if something went wrong.
+	 * @return true if successfully updated; return false if nothing have been updated or if something went wrong.
 	 */
 	public boolean hideDish(String name) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
@@ -1134,7 +1200,7 @@ public class Database {
 	}
 
 	/**
-	 * Adds a new category into the database. This methode only uses the name of the category to create one.
+	 * Adds a new category into the database. This method only uses the name of the category to create one.
 	 *
 	 * @param name String object
 	 * @return true if the category is successfully added. False is it fails.
@@ -1162,7 +1228,11 @@ public class Database {
 
 	}
 
-	//TODO DOK!
+    /**
+     * Finds the postal name by postal code
+     * @param postInt Represents the postal code
+     * @return a String with the postal name
+     */
 	public String findPostPlace(Integer postInt) {
 		String query = "SELECT place FROM postalcode WHERE postalcode = ?";
 		try (Connection con = DriverManager.getConnection(URL, username, password);
@@ -1181,7 +1251,7 @@ public class Database {
 	 * Adds a dish to the database
 	 *
 	 * @param dish Dish object
-	 * @return true if sucsessfully added, else it will return false.
+	 * @return true if successfully added, else it will return false.
 	 */
 	public boolean addDish(Dish dish) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
@@ -1237,7 +1307,10 @@ public class Database {
 		}
 	}
 
-	//todo: make nice text here
+    /**
+     * Gets all the ingredients from the database ordered by ingredient name
+     * @return a DefaultListModel with the ingredients
+     */
 	public DefaultListModel<Ingredient> getIngredients() {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (PreparedStatement prepStat = con.prepareStatement("SELECT * FROM ingredient ORDER BY ingredientname")) {
@@ -1296,7 +1369,7 @@ public class Database {
 	 * Removes a category from the database, based on the string value
 	 *
 	 * @param name string object
-	 * @return true f sucsessfully removed, else it will return false.
+	 * @return true f successfully removed, else it will return false.
 	 */
 
 	public boolean removeCategory(String name) {
@@ -1335,7 +1408,11 @@ public class Database {
 
 	}
 
-
+    /**
+     * Checks if a customer exists by comparing first name and phone number
+     * @param customer The object of an customer
+     * @return true if customer exists, false if not
+     */
 	public boolean customerExist(Customer customer) {
 		String sql = "SELECT clean_fn, phonenumber FROM customer WHERE clean_fn = ? AND phonenumber = ?";
 		try (Connection con = DriverManager.getConnection(URL, username, password);
@@ -1372,9 +1449,9 @@ public class Database {
 	/**
 	 * Insert dish_id and ingredient_id into dish_ingredient tabel.
 	 *
-	 * @param dishname       String object
-	 * @param ingredientname String object
-	 * @return true if sucsessfully inserted, else false
+	 * @param dishname       String object of the dish the indredient shall be putt in to
+	 * @param ingredientname String object of the ingredient name
+	 * @return true if successfully inserted, else false
 	 */
 	public boolean insertDishIngredient(String dishname, String ingredientname) throws SQLException {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
@@ -1475,11 +1552,11 @@ public class Database {
 	}
 
 	/**
-	 * Insert cat_id and dish_id into cat_dish tabel
+	 * Insert cat_id(category id) and dish_id into cat_dish tabel
 	 *
 	 * @param dishname String object
 	 * @param catname  String object
-	 * @return true if sucsessfully added, else false.
+	 * @return true if successfully added, else false.
 	 */
 	public boolean insertDishCat(String dishname, String catname) throws SQLException {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
@@ -1498,8 +1575,8 @@ public class Database {
 	/**
 	 * Checks if a category exist in the database (BE AWARE OF THE RETURN VALUE!)
 	 *
-	 * @param name String object
-	 * @return true if category exist or if an exception have occured, else it will return false.
+	 * @param name String object of the given category name
+	 * @return true if category exist or if an exception have occurred, else it will return false.
 	 */
 	public boolean cateogryExist(String name) throws SQLException {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
@@ -1519,7 +1596,7 @@ public class Database {
 					}
 				}
                     
-                    /*returns the List of cusomer objects with a match to the search phrase*/
+                    /*returns the List of customer objects with a match to the search phrase*/
 
 			}
 		}
@@ -1530,8 +1607,8 @@ public class Database {
 	/**
 	 * Checks if an ingredient exist in the database (BE AWARE OF THE RETURN VALUE!)
 	 *
-	 * @param name String object
-	 * @return true if category exist or if an exception have occured, else it will return false.
+	 * @param name String object of the given ingredient
+	 * @return true if category exist or if an exception have occurred, else it will return false.
 	 */
 	public boolean ingredientExist(String name) throws SQLException {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
@@ -1560,9 +1637,9 @@ public class Database {
 	}
 
 	/**
-	 * Search the database for an existing dish. (BE AWERE OF THE RETURN VALUES)
+	 * Search the database for an existing dish. (BE AWARE OF THE RETURN VALUES)
 	 *
-	 * @param name String object
+	 * @param name String object of the given dish
 	 * @return true if the dish exist or an sql exception occur, else it will return false.
 	 */
 	public boolean dishExist(String name) throws SQLException {
@@ -1591,7 +1668,7 @@ public class Database {
 	}
 
 	/**
-	 * Find dishes who belongs to one spesefic category id and are activated (not hided).
+	 * Find dishes who belongs to one specific category id and are activated (not hided).
 	 *
 	 * @param id Integer Category id
 	 * @return a DefaultListModel<Dish> with Dish objects that are active, else it will return null
@@ -1625,10 +1702,10 @@ public class Database {
 	}
 
 	/**
-	 * Delet a employe from the database using employee id.
+	 * Delete a employee from the database using employee id.
 	 *
 	 * @param id Integer (Employee ID)
-	 * @return true if sucsessfully removed, else it will return false.
+	 * @return true if successfully removed, else it will return false.
 	 */
 	public boolean removeEmployee(int id) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
@@ -1660,10 +1737,10 @@ public class Database {
 
 
 	/**
-	 * Make a dish visible by chacing dish status in the datbase to 1.
+	 * Make a dish visible by changing dish status in the database to 1.
 	 *
 	 * @param name String object (Dish name)
-	 * @return true if sucsessfully hides the dish, else it will return false
+	 * @return true if successfully hides the dish, else it will return false
 	 */
 	public boolean activateDish(String name) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
@@ -1695,7 +1772,7 @@ public class Database {
 	 * Find all dishes in one category, even if the dish are not active. (hided)
 	 *
 	 * @param id Integer( Category ID)
-	 * @return return a DefaultListModel<Dish> with all the dish objects, else it will retun null
+	 * @return return a DefaultListModel<Dish> with all the dish objects, else it will return null
 	 */
 	public DefaultListModel<Dish> getAllDishesInACategory(int id) {
 		if (id < 0) {
@@ -1724,6 +1801,11 @@ public class Database {
 		}
 	}
 
+    /**
+     * Gives today's subscriptions. The subscriptions that is going to be delivered today
+     * @param today a timestamp with the date that is today
+     * @return a ArrayList with the subscriptions
+     */
 	public ArrayList<String[]> getTodaySubscription(String today) {
 		ArrayList<String[]> output = new ArrayList<>();
 		String sql = "SELECT order_dish.quantity, dish.dishname, order_dish.days, customer.firstname, customer.lastname, orders.starts, orders.ends FROM order_dish JOIN orders ON (orders.order_id = order_dish.order_id) JOIN dish ON (order_dish.dish_id = dish.dish_id) JOIN customer ON (orders.customer_id = customer.customer_id) WHERE orders.starts <= ? AND orders.ends >= ?";
@@ -1753,7 +1835,11 @@ public class Database {
 		}
 	}
 
-
+    /**
+     * Gives today's orders. The orders that is going to be delivered today
+     * @param today a timestamp with the date that is today
+     * @return a ArrayList with the subscriptions
+     */
 	public ArrayList<String[]> getTodayOrder(String today) {
 		ArrayList<String[]> output = new ArrayList<>();
 		String sql = "SELECT order_dish.quantity, order_dish.delivery, dish.dishname, customer.firstname, customer.lastname FROM order_dish JOIN orders ON (orders.order_id = order_dish.order_id) JOIN dish ON (order_dish.dish_id = dish.dish_id) JOIN customer ON (orders.customer_id = customer.customer_id) WHERE order_dish.delivery LIKE ?";
@@ -1784,10 +1870,10 @@ public class Database {
 	}
 
 	/**
-	 * Find order by shearching for firstname, lastname, phonenumber or postalcode. If order id are over 10 signs or the name are over 42 signs the string will be ugly.
+	 * Find order by searching for firstname, lastname, phonenumber or postalcode. The name and order id length is cut because if order id are over 10 signs or the name are over 42 signs the string will be ugly.
 	 *
 	 * @param input String object
-	 * @return DefaultListModel<String> with String object, else it will retun null;
+	 * @return DefaultListModel<String> with String object, else it will return null;
 	 */
 	public DefaultListModel<String> findOrder(String input) {
 			/*Adds wildcard on both sides of the search phrase*/
@@ -1868,7 +1954,6 @@ public class Database {
 
 	/**
 	 * @return a DefaultListModel of all the Employees in the database. Returns null if it fails somehow.
-	 * @author Jørgen Lien Sellæg
 	 */
 	public DefaultListModel<Employee> getEmployees() {
 		String sql = "SELECT * FROM employee";
@@ -1888,6 +1973,12 @@ public class Database {
 		}
 	}
 
+    /**
+     * It's a income report that finds all the dishes that is sold and calculates the profit of the dishes
+     * @param from  The start date
+     * @param to    The end date
+     * @return a ArrayList with all the dishes
+     */
 	public ArrayList<String[]> getInComeReport(String from, String to) {
 		try (Connection con = DriverManager.getConnection(URL, username, password)) {
 			try (PreparedStatement prepStat = con.prepareStatement("SELECT dish.dish_id, order_dish.amount, dish.cost, dish.dishname, SUM(quantity) AS 'sum', (order_dish.amount * SUM(quantity)) AS 'sum price', (dish.cost * SUM(quantity)) AS 'sum cost', ((order_dish.amount * SUM(quantity)) - (dish.cost * SUM(quantity))) AS 'profit' FROM dish LEFT JOIN order_dish ON(order_dish.dish_id = dish.dish_id) WHERE order_dish.delivery BETWEEN ? AND ? GROUP BY dish.dishname;")) {
